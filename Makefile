@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g -Iinclude
+CFLAGS = -Wall -g -Iinclude -Wno-deprecated-declarations
 LDFLAGS = -lssl -lcrypto
 SRC_DIR = src
 BIN_DIR = bin

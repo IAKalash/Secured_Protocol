@@ -3,21 +3,27 @@
 
     #include <openssl/ec.h>
     #include <openssl/err.h>
+    #include <openssl/ssl.h>
     #include <stdio.h>
     #include <stdlib.h>
 
-    typedef struct Keys {
+    typedef struct KeyPair {
         EC_KEY *key;
-        unsigned char* public_key;
-        int PCsize;
-    } Keys;
+        unsigned char *public_key;
+        size_t PKsize;
+    } KeyPair;
 
-    int ErrSSL();
+    void error(int); //Errors print
+    //2 - allocation failed
+    //3 - key generation error
 
-    Keys *genKeys();
+    //Generates an ECDH keys (secp256k1)
+    KeyPair *genKeys(void);
 
-    void freeKeys();
+    //Frees a KeyPair structure
+    void freeKeys(KeyPair *);
 
-    char *PChex();
+    //Converts a public key to a hex string
+    char *PKhex(unsigned char *pub_key, size_t size);
 
 #endif
