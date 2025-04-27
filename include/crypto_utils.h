@@ -21,9 +21,13 @@
     KeyPair *genKeys(void);
 
     //Frees a KeyPair structure
-    void freeKeys(KeyPair *);
+    void freeKeys(KeyPair *pair);
 
     //Converts a public key to a hex string
+    //(is needed to print it easily)
     char *PKhex(unsigned char *pub_key, size_t size);
+
+    // Computes the ECDH shared secret using own key and your mate's public key
+    unsigned char *computeSecret(EC_KEY *own_key, const unsigned char *pub_key, size_t keySize, size_t *secretSize);
 
 #endif

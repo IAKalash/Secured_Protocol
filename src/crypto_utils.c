@@ -8,6 +8,9 @@ void error(int err) { //Вывод ошибок и завершение прог
     else if (err == 3) {
         fprintf(stderr, "Key generation error\n");
     }
+    else if (err == 4) {
+        fprintf(stderr, "Secret computation error\n");
+    }
     exit(err);
 }
 
@@ -59,4 +62,24 @@ char *PKhex(unsigned char *pub_key, size_t size) { //Перевод public_key �
     hex[2 * size] = '\0';
 
     return hex;
+}
+
+unsigned char *computeSecret(EC_KEY *own_key, const unsigned char *pub_key, size_t keySize, size_t *secretSize) {
+
+    const EC_GROUP *group = EC_KEY_get0_group(own_key);
+
+    EC_POINT *pub_point = EC_POINT_new(group);
+    if (!pub_point) error(2);
+
+    ; //Заполнение буфера ключа (перевод в октеты)
+    if (EC_POINT_oct2point(group, pub_point, pub_key, keySize, NULL) != 1) 
+        error(3);
+
+    *secretSize = 32;
+    unsigned char *secret = malloc(*secretSize);
+
+    size_t secret_check = ECDH_compute_key(secret, *secretSize, pub_point, own_key, NULL);
+    if (secret_check != *secretSize) error(4);
+
+    return secret;
 }
