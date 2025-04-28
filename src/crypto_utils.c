@@ -11,6 +11,9 @@ void error(int err) { //Вывод ошибок и завершение прог
     else if (err == 4) {
         fprintf(stderr, "Secret computation error\n");
     }
+    else if (err == 5) {
+        fprintf(stderr, "HKDF derivation error\n");
+    }
     exit(err);
 }
 
@@ -56,7 +59,7 @@ char *PKhex(unsigned char *pub_key, size_t size) { //Перевод public_key �
     char *hex = (char *)malloc(2 * size + 1);
     if (!hex) error(2);
 
-    for (int i = 0; i < size; ++i) {
+    for (size_t i = 0; i < size; ++i) {
         sprintf(&hex[2 * i], "%02x", pub_key[i]);
     }
     hex[2 * size] = '\0';
@@ -71,15 +74,56 @@ unsigned char *computeSecret(EC_KEY *own_key, const unsigned char *pub_key, size
     EC_POINT *pub_point = EC_POINT_new(group);
     if (!pub_point) error(2);
 
-    ; //Заполнение буфера ключа (перевод в октеты)
-    if (EC_POINT_oct2point(group, pub_point, pub_key, keySize, NULL) != 1) 
+    if (EC_POINT_oct2point(group, pub_point, pub_key, keySize, NULL) != 1) {
+        EC_POINT_free(pub_point);
         error(3);
+    }
 
-    *secretSize = 32;
+    *secretSize = 32; //фиксированная длина для secp256k1
     unsigned char *secret = malloc(*secretSize);
 
     size_t secret_check = ECDH_compute_key(secret, *secretSize, pub_point, own_key, NULL);
-    if (secret_check != *secretSize) error(4);
+    if (secret_check != *secretSize) {
+        EC_POINT_free(pub_point);
+        error(4);
+    }
 
+    EC_POINT_free(pub_point);
     return secret;
+}
+
+unsigned char *hkdf(const unsigned char *secret, const unsigned char *salt, size_t salt_len, const unsigned char *info, size_t info_len) {
+
+    unsigned char *prk = (unsigned char *)malloc(32); //псевдослучайный ключ
+    if (!prk) error(2);
+    unsigned int prk_len;
+
+    if (!salt) {
+        unsigned char empty_salt[32] = {0};
+        HMAC(EVP_sha256(), empty_salt, 32, secret, 32, prk, &prk_len);
+    }
+    else 
+        HMAC(EVP_sha256(), salt, salt_len, secret, 32, prk, &prk_len);
+
+    if (prk_len != 32) {
+        free(prk);
+        error(5);
+    }
+
+    unsigned char *key = (unsigned char *)malloc(32);
+    if (!key) {
+        free(prk);
+        error(2);
+    }
+    unsigned int key_len;
+
+    if (!info) {
+        unsigned char empty_info[32] = {0};
+        HMAC(EVP_sha256(), prk, 32, empty_info, 32, key, &key_len);
+    }
+    else 
+        HMAC(EVP_sha256(), prk, 32, info, info_len, key, &key_len);
+
+    free(prk);
+    return key;
 }

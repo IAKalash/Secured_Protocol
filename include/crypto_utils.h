@@ -4,6 +4,7 @@
     #include <openssl/ec.h>
     #include <openssl/err.h>
     #include <openssl/ssl.h>
+    #include <openssl/hmac.h>
     #include <stdio.h>
     #include <stdlib.h>
 
@@ -29,5 +30,8 @@
 
     // Computes the ECDH shared secret using own key and your mate's public key
     unsigned char *computeSecret(EC_KEY *own_key, const unsigned char *pub_key, size_t keySize, size_t *secretSize);
+
+    // Derives a symmetric key using HKDF from the shared secret.
+    unsigned char *hkdf(const unsigned char *secret, const unsigned char *salt, size_t salt_len, const unsigned char *info, size_t info_len);
 
 #endif

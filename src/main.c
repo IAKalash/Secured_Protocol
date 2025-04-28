@@ -16,15 +16,24 @@ int main() {
     unsigned char *alexandra_secret = computeSecret(alexandra_pair->key, 
         mikhail_pair->public_key, mikhail_pair->PKsize, &alexandra_secret_size);
 
+    const unsigned char *salt = (unsigned char *)"protocol salt";
 
-    char *mikhail_secret_hex = PKhex(mikhail_secret, mikhail_secret_size);
-    char *alexandra_secret_hex = PKhex(alexandra_secret, alexandra_secret_size);
-    printf("%s\n%s\n", mikhail_secret_hex, alexandra_secret_hex);
+    unsigned char *mikhail_key = hkdf(mikhail_secret, NULL, 0, NULL, 0);
+    unsigned char *alexandra_key = hkdf(alexandra_secret, NULL, 0, NULL, 0);
 
-    free(mikhail_secret_hex);
+    char *mikhail_key_hex = PKhex(mikhail_key, 32);
+    char *alexandra_key_hex = PKhex(alexandra_key, 32);
+
+    printf("%s\n%s\n", mikhail_key_hex, alexandra_key_hex);
+
     free(mikhail_secret);
-    free(alexandra_secret_hex);
     free(alexandra_secret);
+    free(mikhail_key);
+    free(alexandra_key);
+    free(mikhail_key_hex);
+    free(alexandra_key_hex);
+    freeKeys(mikhail_pair);
+    freeKeys(alexandra_pair);
 
     //Освобождение памяти от OpenSSL
     ERR_free_strings(); // Освобождение строк ошибок
