@@ -51,4 +51,13 @@
     //Returns the lenght of decrypted text.
     int decrypt(const unsigned char *key, const unsigned char *iv, const unsigned char *text, size_t text_len, const unsigned char *tag, unsigned char *out_buffer);
 
+    //Signs a message using ECDSA with a private key.
+    void ecdsa_sign(EC_KEY *key, const unsigned char *message, size_t message_len, unsigned char *signature_buffer, unsigned int *signature_len_buffer);
+
+    //Verifies an ECDSA signature using a public key.
+    //Returns 1 - sign verified successfully,
+    //        0 - sign is incorrect,
+    //       -1  - error.
+    int ecdsa_verify(EC_KEY *own_key, const unsigned char *pub_key, size_t pub_key_len, const unsigned char *message, size_t message_len, const unsigned char *signature, unsigned int signature_len);
+
 #endif

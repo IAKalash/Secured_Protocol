@@ -20,6 +20,9 @@ void error(int err) { //Обработка и вывод ошибок
     else if (err == 7) {
         fprintf(stderr, "Wrong tag! The data is corrupted or changed\n");
     }
+    else if (err == 8) {
+        fprintf(stderr, "ECDSA computation failed\n");
+    }
     exit(err);
 }
 
@@ -106,18 +109,18 @@ unsigned char *hkdf(const unsigned char *secret, const unsigned char *salt, size
     unsigned int prk_len;
 
     if (!salt) {
-        unsigned char empty_salt[32] = {0};
-        HMAC(EVP_sha256(), empty_salt, 32, secret, 32, prk, &prk_len); //Получение псевдослучайного ключа (Соль отсутствует)
+        unsigned char empty_salt[SHA256_DIGEST_LENGTH] = {0};
+        HMAC(EVP_sha256(), empty_salt, SHA256_DIGEST_LENGTH, secret, SHA256_DIGEST_LENGTH, prk, &prk_len); //Получение псевдослучайного ключа (Соль отсутствует)
     }
     else 
-        HMAC(EVP_sha256(), salt, salt_len, secret, 32, prk, &prk_len); //Получение псевдослучайного ключа из соли и секрета
+        HMAC(EVP_sha256(), salt, salt_len, secret, SHA256_DIGEST_LENGTH, prk, &prk_len); //Получение псевдослучайного ключа из соли и секрета
 
-    if (prk_len != 32) {
+    if (prk_len != SHA256_DIGEST_LENGTH) {
         free(prk);
         error(5);
     }
 
-    unsigned char *key = (unsigned char *)malloc(32);
+    unsigned char *key = (unsigned char *)malloc(SHA256_DIGEST_LENGTH);
     if (!key) {
         free(prk);
         error(2);
@@ -125,11 +128,11 @@ unsigned char *hkdf(const unsigned char *secret, const unsigned char *salt, size
     unsigned int key_len;
 
     if (!info) {
-        unsigned char empty_info[32] = {0};
-        HMAC(EVP_sha256(), prk, 32, empty_info, 32, key, &key_len);   //Получение ключа из ПСК
+        unsigned char empty_info[SHA256_DIGEST_LENGTH] = {0};
+        HMAC(EVP_sha256(), prk, SHA256_DIGEST_LENGTH, empty_info, SHA256_DIGEST_LENGTH, key, &key_len);   //Получение ключа из ПСК
     }
     else 
-        HMAC(EVP_sha256(), prk, 32, info, info_len, key, &key_len);   //Получение ключа из ПСК и метаданных
+        HMAC(EVP_sha256(), prk, SHA256_DIGEST_LENGTH, info, info_len, key, &key_len);   //Получение ключа из ПСК и метаданных
 
     free(prk);
     return key;
@@ -157,6 +160,7 @@ int encrypt(const unsigned char *key, const unsigned char *iv, const unsigned ch
     return out_len;
 }
 
+//Дешифрование сообщения
 int decrypt(const unsigned char *key, const unsigned char *iv, const unsigned char *text, size_t text_len, const unsigned char *tag, unsigned char *out_buffer) {
     
     EVP_CIPHER_CTX *context = EVP_CIPHER_CTX_new(); //Создание контекста
@@ -176,4 +180,55 @@ int decrypt(const unsigned char *key, const unsigned char *iv, const unsigned ch
 
     EVP_CIPHER_CTX_free(context);
     return out_len;
+}
+
+//Создаёт подпись ECDSA
+void ecdsa_sign(EC_KEY *key, const unsigned char *msg, size_t msg_len, unsigned char *sign, unsigned int *sign_len) {
+
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256(msg, msg_len, hash);                 //Хэширование сообщения
+
+    if (ECDSA_sign(0, hash, SHA256_DIGEST_LENGTH, sign, sign_len, key) != 1) error(8); //Генерация ECDSA подписи
+}
+
+//Верифицирует подпись
+int ecdsa_verify(EC_KEY *own_key, const unsigned char *pub_key, size_t pub_key_len, const unsigned char *msg, size_t msg_len, const unsigned char *sign, unsigned int sign_len) {
+
+    const EC_GROUP *group = EC_KEY_get0_group(own_key);  //Извлечение группы кривой
+
+    EC_KEY *pub_ec_key = EC_KEY_new(); //Частичное восстановление исходного EC_KEY для верификации
+    if (!pub_ec_key) error(2);
+
+    if (EC_KEY_set_group(pub_ec_key, group) != 1) {  //Восстановление группы
+        EC_KEY_free(pub_ec_key);
+        error(8);
+    }
+
+    EC_POINT *pub_point = EC_POINT_new(group);           //Инициализация точки на кривой
+    if (!pub_point) {
+        EC_KEY_free(pub_ec_key);
+        error(2);
+    }
+
+    if (EC_POINT_oct2point(group, pub_point, pub_key, pub_key_len, NULL) != 1) { //Восстановление точки из публичного ключа
+        EC_KEY_free(pub_ec_key);
+        EC_POINT_free(pub_point);
+        error(8);
+    }
+
+    if (EC_KEY_set_public_key(pub_ec_key, pub_point) != 1) { //Восстановление публичного ключа
+        EC_KEY_free(pub_ec_key);
+        EC_POINT_free(pub_point);
+        error(8);
+    }
+
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256(msg, msg_len, hash);                         //Хэширование сообщения
+
+    int res = ECDSA_verify(0, hash, SHA256_DIGEST_LENGTH, sign, sign_len, pub_ec_key);  //Верификация ключа
+
+    EC_KEY_free(pub_ec_key);
+    EC_POINT_free(pub_point);
+
+    return res;
 }

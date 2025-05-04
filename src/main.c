@@ -23,23 +23,35 @@ int main() {
 
     unsigned char iv[12];   //Создание вектора инициализации
     RAND_bytes(iv, 12);
-    unsigned char message[50] = "Hello, Alexandra!!!";
+    unsigned char message[20] = "Hello, Alexandra!!!";
     unsigned char tag[16] = {0};
-    unsigned char encrypted_msg[sizeof(message)];
+    unsigned char encrypted_msg[sizeof(message)] = {0};
 
     printf("Original message: %s\n", message);
     encrypt(mikhail_key, iv, message, sizeof(message), encrypted_msg, tag); //Шифрование сообщения
 
     char *encrypt_hex = PKhex(encrypted_msg, sizeof(encrypted_msg));
-    printf("Crypt: %s\n", encrypt_hex);
+    printf("\nCrypt: %s\n", encrypt_hex);
+
+    unsigned char signature[72];
+    unsigned int signature_len;
+    ecdsa_sign(mikhail_pair->key, message, sizeof(message), signature, &signature_len); //Подпись исходного сообщения
+    char *ecdsa_hex = PKhex(signature, signature_len);
+
+    printf("\nSignature: %s\n", ecdsa_hex);
 
     //tag[0] *= 2;
 
     unsigned char decrypted_msg[sizeof(encrypted_msg)];
-    decrypt(alexandra_key, iv, encrypted_msg, sizeof(encrypted_msg), tag, decrypted_msg);  //Дешифровка сообщения
+    int decmsg_len = decrypt(alexandra_key, iv, encrypted_msg, sizeof(encrypted_msg), tag, decrypted_msg);  //Дешифровка сообщения
 
-    printf("Decrypted message: %s\n", decrypted_msg);
+    if (ecdsa_verify(alexandra_pair->key, mikhail_pair->public_key, mikhail_pair->PKsize, decrypted_msg, decmsg_len, signature, signature_len))
+        printf("The signature is valid\n");
+    else printf("Invalid signature!!!");
 
+    printf("\nDecrypted message: %s\n", decrypted_msg);
+
+    free(ecdsa_hex);
     free(mikhail_secret);
     free(alexandra_secret);
     free(mikhail_key);
