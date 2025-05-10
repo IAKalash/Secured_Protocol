@@ -3,7 +3,7 @@ CFLAGS = -Wall -g -Iinclude -Wno-deprecated-declarations
 LDFLAGS = -lssl -lcrypto
 SRC_DIR = src
 BIN_DIR = bin
-TARGET = $(BIN_DIR)/protocol
+TARGET = $ bin/protocol
 
 SOURCES = $(wildcard $(SRC_DIR)/*.c)
 OBJECTS = $(SOURCES:.c=.o)

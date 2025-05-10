@@ -57,7 +57,7 @@
     //Verifies an ECDSA signature using a public key.
     //Returns 1 - sign verified successfully,
     //        0 - sign is incorrect,
-    //       -1  - error.
+    //       -1 - error.
     int ecdsa_verify(EC_KEY *own_key, const unsigned char *pub_key, size_t pub_key_len, const unsigned char *message, size_t message_len, const unsigned char *signature, unsigned int signature_len);
 
 #endif

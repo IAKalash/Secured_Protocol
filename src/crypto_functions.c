@@ -1,6 +1,7 @@
-#include "crypto_utils.h"
+#include "crypto_functions.h"
 
-void error(int err) { //Обработка и вывод ошибок
+//Обработка и вывод ошибок
+void error(int err) {
     ERR_print_errors_fp(stderr);
     if (err == 2) {
         fprintf(stderr, "Memory allocation failed\n");
@@ -26,7 +27,8 @@ void error(int err) { //Обработка и вывод ошибок
     exit(err);
 }
 
-KeyPair *genKeys(void) { //Генерация ключевой пары ECDH на кривой
+//Генерация ключевой пары ECDH на кривой
+KeyPair *genKeys(void) {
 
     KeyPair *keys = (KeyPair *)calloc(1, sizeof(KeyPair));
     if (!keys) error(2);
@@ -56,7 +58,8 @@ KeyPair *genKeys(void) { //Генерация ключевой пары ECDH н�
     return keys;
 }
 
-void freeKeys(KeyPair *pair) { //Освобождение структуры
+//Освобождение структуры
+void freeKeys(KeyPair *pair) {
     if (pair) { //if pair != NULL
         EC_KEY_free(pair->key);
         free(pair->public_key);
@@ -64,7 +67,8 @@ void freeKeys(KeyPair *pair) { //Освобождение структуры
     }
 }
 
-char *PKhex(unsigned char *pub_key, size_t size) { //Перевод в hex-строку
+//Перевод в hex-строку
+char *PKhex(unsigned char *pub_key, size_t size) {
     char *hex = (char *)malloc(2 * size + 1);
     if (!hex) error(2);
 
@@ -76,7 +80,8 @@ char *PKhex(unsigned char *pub_key, size_t size) { //Перевод в hex-ст�
     return hex;
 }
 
-unsigned char *computeSecret(EC_KEY *own_key, const unsigned char *pub_key, size_t keySize, size_t *secretSize) { //Расчёт секрета
+//Расчёт секрета
+unsigned char *computeSecret(EC_KEY *own_key, const unsigned char *pub_key, size_t keySize, size_t *secretSize) {
 
     const EC_GROUP *group = EC_KEY_get0_group(own_key);  //Извлечение группы кривой
 
