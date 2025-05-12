@@ -13,7 +13,7 @@
 -Провеока проекта на другом ПК/Linux/Windows
 */
 int main(int argc, char *argv[]) {
-    if (argc < 3) {
+    if (argc < 2) {
         printf("Usage: ./bin/protocol --server <port>\n   OR: ./bin/protocol --client <hostname(or IP)> <port>\n");
         exit(1);
     }
