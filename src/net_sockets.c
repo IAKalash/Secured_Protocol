@@ -143,8 +143,8 @@ int send_message(int socket, const unsigned char *key, EC_KEY *sign_key, const u
 
 //Получение и дешифровка сообщения
 int recv_message(int socket, const unsigned char *key, const unsigned char *mate_PK, KeyPair *mypair, message *out_buf) {
-	if (recv(socket, out_buf, sizeof(message), 0) == -1) { //Получение сообщения
-		perror("recv");
+	if (recv(socket, out_buf, sizeof(message), 0) != sizeof(message)) { //Получение сообщения
+		perror("recv"); ///////////////////////////////////
 		return -1;
 	}
 

@@ -3,15 +3,14 @@
 #include <string.h>
 
 /* TODO:
+-проверка на долбаёба
+-сериализация данных
+-Проыерка ключа при получении и переотправка при необходимости
+-Проверка потери пакетов в recv send
 -AAD
--poll
--Уведомление о полученном сообщении
 -README(Документация)
--команды(--help --send --receive ...)
 -структуризация (+ комментарии)
--Проверка сети
 -Провеока проекта на другом ПК/Linux/Windows
--Возможно разработка установщиков (.bat, .sh)
 */
 int main(int argc, char *argv[]) {
     if (argc < 3) {
@@ -29,8 +28,10 @@ int main(int argc, char *argv[]) {
 
     if (strcmp("--server", argv[1]) == 0) {
         mate_socket = init_server(argv[2]);
-        send(mate_socket, my_pair->public_key, my_pair->PKsize, 0);
-        recv(mate_socket, mate_PK, my_pair->PKsize, 0);
+        ssize_t sent = send(mate_socket, my_pair->public_key, my_pair->PKsize, 0);
+        if (sent != my_pair->PKsize) error(8); //////////////////////
+        ssize_t received = recv(mate_socket, mate_PK, my_pair->PKsize, 0);
+        if (received != my_pair->PKsize) error(8); /////////////////
     }
     else {
         mate_socket = init_client(argv[2], argv[3]);
@@ -44,31 +45,45 @@ int main(int argc, char *argv[]) {
 
     const unsigned char *salt = (unsigned char *)"protocol salt";   //Создание статичной соли
 
-    unsigned char *key = hkdf(secret, salt, sizeof(salt), NULL, 0); //Генерация ключа из секрета
+    unsigned char *key = hkdf(secret, salt, strlen("protocol salt"), NULL, 0); //Генерация ключа из секрета
 
-    if (strcmp("--server", argv[1]) == 0) {
-        unsigned char text[20] = "Hello, World!!!";
-        if (send_message(mate_socket, key, my_pair->key, text, sizeof(text))) {
-            printf("Сообщение отправлено успешно\n");
+    struct pollfd fds[2];
+    fds[0].fd = mate_socket;
+    fds[0].events = POLLIN;
+    fds[1].fd = fileno(stdin);
+    fds[1].events = POLLIN;
+    char buffer[256];
+    message msg;
+    printf("Print /close to stop the conversation\n---\n");
+    while (1) {
+        poll(fds, 2, -1);
+        if (fds[0].revents) {
+            if (recv_message(mate_socket, key, mate_PK, my_pair, &msg) == -1) {
+                printf("---\n[STATUS] Conversation is finished by your mate\n---");
+                break;
+            }
+            printf("Mate> %s\n", msg.text);
         }
-    }
-    else {
-        int rm;
-        message msg;
-        if ((rm = recv_message(mate_socket, key, mate_PK, my_pair, &msg))) 
-            printf("%s\n", msg.text);
-        else if (rm == 0)
-            printf("Invalid sign\n");
+        if (fds[1].revents) {
+            fgets(buffer, 256, stdin);
+            if (strcmp(buffer, "/close\n") == 0) {
+                break;
+            }
+            else {
+                printf("\n");
+                send_message(mate_socket, key, my_pair->key, (unsigned char *)buffer, 256);
+            }
+        }
     }
 
     close(mate_socket);
 
-    free(my_pair);
     free(mate_PK);
     free(secret);
     free(key);
+    freeKeys(my_pair);
 
     //Освобождение памяти от OpenSSL
     ERR_free_strings(); // Освобождение строк ошибок
-    EVP_cleanup();      // Очистка алгоритмов
+    OPENSSL_cleanup();      // Очистка алгоритмов
 }

@@ -9,6 +9,7 @@
     #include <netinet/in.h>
     #include <netdb.h>
     #include <arpa/inet.h>
+    #include <poll.h>
 
     typedef struct message {
         unsigned char IV[12];
