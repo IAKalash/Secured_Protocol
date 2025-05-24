@@ -1,14 +1,14 @@
 #ifndef CRYPTO_UTILITIES
     #define CRYPTO_UTILITIES
 
+    #include <stdio.h>
+    #include <stdlib.h>
     #include <openssl/ec.h>
     #include <openssl/err.h>
     #include <openssl/ssl.h>
     #include <openssl/hmac.h>
     #include <openssl/evp.h>
     #include <openssl/rand.h>
-    #include <stdio.h>
-    #include <stdlib.h>
 
     //A structure for ECDH key pair
     typedef struct KeyPair {
@@ -24,6 +24,7 @@
     //5 - hkdf error
     //6 - Encryption/Decryption error
     //7 - data is corrupted or changed
+    //8 - ECDSA computation failed
     void error(int);
 
     //Generates ECDH keys (secp256k1)

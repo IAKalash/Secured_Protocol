@@ -2,16 +2,81 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "cmake: configure",
             "type": "shell",
-            "command": "make",
-            "args": [],
+            "command": "cmake",
+            "args": [
+                "-S",
+                "${workspaceFolder}",
+                "-B",
+                "${workspaceFolder}/build",
+                "-G",
+                "MinGW Makefiles",
+                "-DCMAKE_C_COMPILER=C:/msys64/mingw64/bin/gcc.exe",
+                "-DVCPKG_TARGET_TRIPLET=x64-mingw-static",  // Укажем триплет
+                "-DCMAKE_BUILD_TYPE=Debug"
+            ],
+            "group": "build",
+            "detail": "Generate build system files using CMake",
+            "problemMatcher": [],
+            "options": {
+                "env": {
+                    "CC": "C:/msys64/mingw64/bin/gcc.exe",
+                    "CXX": "C:/msys64/mingw64/bin/g++.exe"
+                }
+            }
+        },
+        {
+            "label": "cmake: build",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build",
+                "--config",
+                "Debug"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": ["$gcc"],
-            "detail": "Task to run Makefile for building the project"
+            "dependsOn": "cmake: configure",
+            "detail": "Build the project using CMake",
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "cmake: clean",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build",
+                "--target",
+                "clean"
+            ],
+            "group": "build",
+            "detail": "Clean the build directory",
+            "problemMatcher": []
+        },
+        {
+            "label": "cmake: clean and rebuild",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build",
+                "--target",
+                "clean",
+                "&&",
+                "cmake",
+                "--build",
+                "${workspaceFolder}/build",
+                "--config",
+                "Debug"
+            ],
+            "group": "build",
+            "detail": "Clean and rebuild the project",
+            "problemMatcher": ["$gcc"]
         }
     ]
 }
