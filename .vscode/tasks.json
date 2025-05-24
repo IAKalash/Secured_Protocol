@@ -2,7 +2,24 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "cmake: configure",
+            "label": "cmake: configure (Linux)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-S",
+                "${workspaceFolder}",
+                "-B",
+                "${workspaceFolder}/build",
+                "-G",
+                "Unix Makefiles",
+                "-DCMAKE_BUILD_TYPE=Debug"
+            ],
+            "group": "build",
+            "detail": "Generate build system files using CMake on Linux",
+            "problemMatcher": []
+        },
+        {
+            "label": "cmake: configure (Windows)",
             "type": "shell",
             "command": "cmake",
             "args": [
@@ -13,11 +30,11 @@
                 "-G",
                 "MinGW Makefiles",
                 "-DCMAKE_C_COMPILER=C:/msys64/mingw64/bin/gcc.exe",
-                "-DVCPKG_TARGET_TRIPLET=x64-mingw-static",  // Укажем триплет
+                "-DVCPKG_TARGET_TRIPLET=x64-mingw-static",
                 "-DCMAKE_BUILD_TYPE=Debug"
             ],
             "group": "build",
-            "detail": "Generate build system files using CMake",
+            "detail": "Generate build system files using CMake on Windows",
             "problemMatcher": [],
             "options": {
                 "env": {
@@ -27,7 +44,7 @@
             }
         },
         {
-            "label": "cmake: build",
+            "label": "cmake: build (Linux)",
             "type": "shell",
             "command": "cmake",
             "args": [
@@ -38,10 +55,28 @@
             ],
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
-            "dependsOn": "cmake: configure",
-            "detail": "Build the project using CMake",
+            "dependsOn": "cmake: configure (Linux)",
+            "detail": "Build the project using CMake on Linux",
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "cmake: build (Windows)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build",
+                "--config",
+                "Debug"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "dependsOn": "cmake: configure (Windows)",
+            "detail": "Build the project using CMake on Windows",
             "problemMatcher": ["$gcc"]
         },
         {
@@ -59,7 +94,7 @@
             "problemMatcher": []
         },
         {
-            "label": "cmake: clean and rebuild",
+            "label": "cmake: clean and rebuild (Linux)",
             "type": "shell",
             "command": "cmake",
             "args": [
@@ -75,8 +110,30 @@
                 "Debug"
             ],
             "group": "build",
-            "detail": "Clean and rebuild the project",
-            "problemMatcher": ["$gcc"]
+            "detail": "Clean and rebuild the project on Linux",
+            "problemMatcher": ["$gcc"],
+            "dependsOn": "cmake: configure (Linux)"
+        },
+        {
+            "label": "cmake: clean and rebuild (Windows)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build",
+                "--target",
+                "clean",
+                "&&",
+                "cmake",
+                "--build",
+                "${workspaceFolder}/build",
+                "--config",
+                "Debug"
+            ],
+            "group": "build",
+            "detail": "Clean and rebuild the project on Windows",
+            "problemMatcher": ["$gcc"],
+            "dependsOn": "cmake: configure (Windows)"
         }
     ]
 }

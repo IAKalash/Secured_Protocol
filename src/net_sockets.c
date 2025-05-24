@@ -16,7 +16,7 @@ int init_server(char *port) {
 	#ifdef _WIN32 
 		const char yes = '1';
 	#else
-		int yes = 1
+		int yes = 1;
 	#endif
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr;
@@ -191,8 +191,8 @@ int send_message(int socket, const unsigned char *key, EC_KEY *sign_key, const u
 		char net_text_len[4];
 		snprintf(net_text_len, 4, "%d", msg.text_len);
 	#else
-		int32_t text_len = htonl(msg.text_len);
-		int32_t net_text_len = &text_len
+		int32_t n_text_len = htonl(msg.text_len);
+		int32_t *net_text_len = &n_text_len;
 	#endif
 	if (send(socket, net_text_len, 4, 0) != 4) {
 		perror("Text lenght sending");

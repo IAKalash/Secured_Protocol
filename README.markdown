@@ -47,12 +47,17 @@ Before compiling and running the project, ensure you have the following installe
 
 ### General Requirements
 - **CMake**: Version 3.10 or higher.
-- **OpenSSL**: Required for cryptographic operations.
-- **C Compiler**: GCC (Linux) or MinGW (Windows).
+- **OpenSSL**: Required for cryptographic operations (automatically installed on Linux if missing).
+- **C Compiler**: GCC (Linux) or MinGW (Windows) (automatically installed on Linux if missing).
 - **Git**: To clone the repository.
 
 ### Linux
-- Install dependencies on a Debian-based system (e.g., Ubuntu):
+- CMake will automatically attempt to install the following dependencies if they are missing:
+  - `build-essential` (includes GCC)
+  - `cmake`
+  - `libssl-dev`
+- Ensure you have `sudo` privileges and an internet connection for automatic installation.
+- If automatic installation fails, you can install them manually:
   ```bash
   sudo apt update
   sudo apt install build-essential cmake libssl-dev
@@ -166,7 +171,11 @@ The application can run in two modes: server or client. The server listens for i
 
 ## Troubleshooting
 
-- **OpenSSL Not Found**: Ensure OpenSSL is installed and the paths in `CMakeLists.txt` match your system (e.g., update `OPENSSL_ROOT_DIR` for Windows).
+- **OpenSSL Not Found on Linux**: If automatic installation fails, install manually:
+  ```bash
+  sudo apt update && sudo apt install libssl-dev
+  ```
+- **OpenSSL Not Found on Windows**: Ensure you installed OpenSSL via MSYS2 as described in the Prerequisites.
 - **Connection Issues**: Verify the port is not blocked by a firewall and the IP address is correct.
 - **Windows Input Issues**: If input doesn't display, run in CMD instead of PowerShell.
 

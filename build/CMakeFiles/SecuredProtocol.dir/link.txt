@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wno-deprecated-declarations -g CMakeFiles/SecuredProtocol.dir/src/crypto_functions.c.o CMakeFiles/SecuredProtocol.dir/src/main.c.o CMakeFiles/SecuredProtocol.dir/src/net_sockets.c.o -o bin/SecuredProtocol  /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so 
