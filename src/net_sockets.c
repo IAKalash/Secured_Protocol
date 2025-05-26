@@ -25,7 +25,7 @@ int init_server(char *port) {
     
 	//Server settings
     memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;      //Any IP version
+    hints.ai_family = AF_INET6;      //Any IP version
     hints.ai_socktype = SOCK_STREAM; //Stream TCP socket
     hints.ai_flags = AI_PASSIVE;     //Fill my IP automatically
 
