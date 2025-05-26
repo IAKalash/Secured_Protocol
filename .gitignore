@@ -4,7 +4,7 @@
 /CMakeUserPresets.json
 
 # Common build directories
-/build*/
+/build/*
 
 # CI jobs that run in symlinked trees produce these artifacts.
 /real_work/
