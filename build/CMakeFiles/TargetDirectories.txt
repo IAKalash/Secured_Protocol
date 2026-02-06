@@ -1,3 +1,0 @@
-/media/ilya/Programming/Secured_Protocol/build/CMakeFiles/SecuredProtocol.dir
-/media/ilya/Programming/Secured_Protocol/build/CMakeFiles/edit_cache.dir
-/media/ilya/Programming/Secured_Protocol/build/CMakeFiles/rebuild_cache.dir

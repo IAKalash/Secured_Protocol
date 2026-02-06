@@ -32,8 +32,14 @@
         // int AAD_len;
     } message;
 
+    // Client struct
+    struct Client {
+        int sockfd;
+        char* name; //username
+    };
+
     // Initializes a TCP server and returns a client socket
-    int init_server(char *port);
+    int init_server(char *port, struct Client *clients, int *client_cnt);
 
     // Connects to a TCP server and returns a socket
     int init_client(const char *ip, char *port);
